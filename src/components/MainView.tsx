@@ -3,7 +3,7 @@
 import CopyToClipboard from "@/components/CopyToClipboard";
 import DownloadAsImage from "@/components/DownloadAsImage";
 import TextareaField from "@/components/TextareaField";
-import { createRef, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 
 export default function MainView() {
@@ -11,7 +11,7 @@ export default function MainView() {
   const [draggingIdx, setDraggingIdx] = useState<string | null>(null);
   const [newPos, setNewPos] = useState({ x: 0, y: 0 });
   const ref = useRef<HTMLDivElement>(null);
-  const fieldRefs = useRef<Record<string, HTMLDivElement>>({});
+  const fieldRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const dragData = draggingIdx ? fields[+draggingIdx] : null;
 
   return (
@@ -42,32 +42,16 @@ export default function MainView() {
             },
           ]);
         }}
-        onMouseDown={(e) => {
-          const target = e.target as HTMLElement;
-          const fieldIdx = target.dataset.fieldIdx;
-          if (!fieldIdx) return;
-          setDraggingIdx(fieldIdx);
-
-          const fieldRef = fieldRefs.current[fieldIdx];
-          console.log(fieldRefs);
-          const rect = e.currentTarget.getBoundingClientRect();
-          const fieldRect = fieldRef.getBoundingClientRect();
-          setNewPos({
-            x: fieldRect.left - rect.left,
-            y: fieldRect.top - rect.top,
-          });
-        }}
         onMouseMove={(e) => {
           if (!draggingIdx) return;
 
           const fieldRef = fieldRefs.current[draggingIdx];
+          if (!fieldRef) return;
+
           const rect = e.currentTarget.getBoundingClientRect();
-          const offsetWidth = fieldRef.offsetWidth / 2;
-          const offsetHeight = fieldRef.offsetHeight / 2;
-          console.log(e.nativeEvent.x, rect.left);
           setNewPos({
-            x: e.nativeEvent.x - rect.left - offsetWidth,
-            y: e.nativeEvent.y - rect.top - offsetHeight,
+            x: e.nativeEvent.x - rect.left,
+            y: e.nativeEvent.y - rect.top,
           });
         }}
         onMouseUp={() => {
@@ -78,32 +62,59 @@ export default function MainView() {
           setDraggingIdx(null);
         }}
       >
-        <img className="h-lvh" src="/podyaka_1.png" />
-
-        {dragData && (
-          <div
-            className="absolute border-2 border-blue-500"
-            style={{
-              left: `${newPos.x}px`,
-              top: `${newPos.y}px`,
-              width: `${dragData.width}px`,
-              height: dragData.height,
-            }}
-          ></div>
-        )}
+        <img className="h-lvh select-none" src="/podyaka_1.png" />
 
         {fields.map((field, idx) => (
           <TextareaField
             key={field.id}
             idx={idx}
             field={field}
-            ref={fieldRefs.current[idx]}
-            onChange={(value) => setFields((fields) => fields.with(idx, { ...field, value }))}
+            hidden={`${idx}` === draggingIdx}
+            onRef={(ref) => {
+              fieldRefs.current[idx] = ref.current;
+            }}
+            onDelete={() => {
+              setFields((fields) => fields.filter((item) => field.id !== item.id));
+            }}
+            onDrag={(e) => {
+              setDraggingIdx(`${idx}`);
+              const fieldRef = fieldRefs.current[idx];
+              if (!fieldRef) return;
+
+              const rect = ref.current!.getBoundingClientRect();
+              const fieldRect = fieldRef.getBoundingClientRect();
+              setNewPos({
+                x: e.nativeEvent.x - rect.x - (e.nativeEvent.x - fieldRect.x),
+                y: e.nativeEvent.y - rect.y - (e.nativeEvent.y - fieldRect.y),
+              });
+            }}
+            onChange={(value) => {
+              setFields((fields) => fields.with(idx, { ...field, value }));
+            }}
             onSizeChange={({ width, height }) => {
-              setFields((fields) => fields.with(idx, { ...field, width, height }));
+              setFields((fields) =>
+                fields.with(idx, {
+                  ...field,
+                  width: width ?? field.width,
+                  height: height ?? field.height,
+                })
+              );
             }}
           />
         ))}
+
+        {dragData && (
+          <div
+            className="absolute border-2 rounded-sm border-slate-500 text-xl z-1000 text-slate-800"
+            style={{
+              left: `${newPos.x}px`,
+              top: `${newPos.y}px`,
+              width: `${dragData.width}px`,
+              height: dragData.height,
+            }}
+            dangerouslySetInnerHTML={{ __html: dragData.value }}
+          />
+        )}
       </div>
 
       <div className="p-4 flex gap-2 flex-col">
