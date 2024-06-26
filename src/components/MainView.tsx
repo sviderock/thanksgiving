@@ -1,5 +1,6 @@
 "use client";
 
+import "core-js/actual/array/with";
 import CopyToClipboard from "@/components/CopyToClipboard";
 import DownloadAsImage from "@/components/DownloadAsImage";
 import DragButton from "@/components/DragButton";
