@@ -87,4 +87,5 @@
 
 .tiptap.ProseMirror {
   height: 100%;
+  outline: none;
 }

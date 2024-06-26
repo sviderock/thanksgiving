@@ -14,6 +14,9 @@ module.exports = {
       },
     },
     extend: {
+      screens: {
+        lg: "950px",
+      },
       colors: {
         success: colors.green,
         border: "hsl(var(--border))",

@@ -1,11 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
 import { Toggle } from "@/components/ui/toggle";
 import {
   CodeIcon,
   FontBoldIcon,
   FontItalicIcon,
-  MoveIcon,
   StrikethroughIcon,
   TextAlignCenterIcon,
   TextAlignJustifyIcon,
@@ -18,40 +18,34 @@ import { type Editor } from "@tiptap/react";
 
 interface Props {
   editor: Editor | null;
-  onDrag: (e: React.MouseEvent<HTMLButtonElement>) => void;
   onDelete: () => void;
 }
 
-export default function TextEditorMenuBar({ editor, onDrag, onDelete }: Props) {
+export default function TextEditorMenuBar({ editor, onDelete }: Props) {
   if (!editor) {
     return null;
   }
 
+  console.log(editor);
+
   return (
     <div className="flex items-center rounded-sm gap-2">
-      <div className="px-2 sticky left-0 bg-slate-600 border-r-2 flex gap-2">
-        <Button
-          size="icon"
-          variant="outline"
-          className="cursor-move px-1 bg-slate-800 sticky left-2"
-          onMouseDown={(e) => onDrag(e)}
-        >
-          <MoveIcon />
-        </Button>
-
-        <Button size="icon" variant="destructive" onClick={() => onDelete()}>
-          <TrashIcon />
-        </Button>
-      </div>
-
-      <div className="overflow-auto">
-        <div className="inline-flex gap-2 py-2 pr-2 overflow-hidden">
+      <div className="flex gap-1 flex-col py-2 overflow-hidden">
+        <div className="inline-flex h-6 items-center gap-2">
+          <Button size="icon" variant="destructive" onClick={() => onDelete()}>
+            <TrashIcon />
+          </Button>
           <Input
             type="color"
             className="h-6 w-6 p-0 bg-transparent cursor-pointer hover:bg-slate-800"
             defaultValue={editor.getAttributes("textStyle").color}
             onInput={(e) => editor.chain().focus().setColor(e.currentTarget.value).run()}
           />
+        </div>
+
+        <Separator />
+
+        <div className="inline-flex gap-2 py-1">
           <Toggle
             size="sm"
             variant="outline"
@@ -88,6 +82,11 @@ export default function TextEditorMenuBar({ editor, onDrag, onDelete }: Props) {
           >
             <StrikethroughIcon className="h-4 w-4" />
           </Toggle>
+        </div>
+
+        <Separator />
+
+        <div className="inline-flex gap-2 py-1">
           <Toggle
             size="sm"
             variant="outline"
@@ -129,8 +128,9 @@ export default function TextEditorMenuBar({ editor, onDrag, onDelete }: Props) {
           >
             <TextAlignRightIcon className="h-4 w-4" />
           </Toggle>
+        </div>
 
-          {/* <Toggle
+        {/* <Toggle
         onClick={() => editor.chain().focus().setParagraph().run()}
         className={editor.isActive("paragraph") ? "is-active" : ""}
       >
@@ -218,7 +218,6 @@ export default function TextEditorMenuBar({ editor, onDrag, onDelete }: Props) {
       >
         Purple
       </Toggle> */}
-        </div>
       </div>
     </div>
   );
