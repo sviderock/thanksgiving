@@ -3,7 +3,7 @@
 import CopyToClipboard from "@/components/CopyToClipboard";
 import DownloadAsImage from "@/components/DownloadAsImage";
 import TextareaField from "@/components/TextareaField";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 
 export default function MainView() {
@@ -38,7 +38,8 @@ export default function MainView() {
               x: e.clientX - parentRect.left,
               y: e.clientY - parentRect.top,
               width: 200,
-              height: 50,
+              height: 30,
+              fontSize: 28,
             },
           ]);
         }}
@@ -76,6 +77,10 @@ export default function MainView() {
             onDelete={() => {
               setFields((fields) => fields.filter((item) => field.id !== item.id));
             }}
+            onChange={(data) => {
+              console.log("change", data);
+              setFields((fields) => fields.with(idx, { ...field, ...data }));
+            }}
             onDrag={(e) => {
               setDraggingIdx(`${idx}`);
               const fieldRef = fieldRefs.current[idx];
@@ -88,31 +93,20 @@ export default function MainView() {
                 y: e.nativeEvent.y - rect.y - (e.nativeEvent.y - fieldRect.y),
               });
             }}
-            onChange={(value) => {
-              setFields((fields) => fields.with(idx, { ...field, value }));
-            }}
-            onSizeChange={({ width, height }) => {
-              setFields((fields) =>
-                fields.with(idx, {
-                  ...field,
-                  width: width ?? field.width,
-                  height: height ?? field.height,
-                })
-              );
-            }}
           />
         ))}
 
         {dragData && (
           <div
-            className="absolute border-2 rounded-sm border-slate-500 text-xl z-1000 text-slate-800"
+            dangerouslySetInnerHTML={{ __html: dragData.value }}
+            className="absolute border-2 leading-none rounded-sm border-slate-500 text-xl z-1000 text-slate-800 break-words"
             style={{
               left: `${newPos.x}px`,
               top: `${newPos.y}px`,
               width: `${dragData.width}px`,
               height: dragData.height,
+              fontSize: `${dragData.fontSize}px`,
             }}
-            dangerouslySetInnerHTML={{ __html: dragData.value }}
           />
         )}
       </div>

@@ -6,6 +6,7 @@ declare global {
     y: number;
     width: number;
     height: number;
+    fontSize: number;
   };
 }
 

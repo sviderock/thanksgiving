@@ -1,7 +1,8 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { toJpeg } from "html-to-image";
+import { filterDom } from "@/utils";
+import { domToJpeg } from "modern-screenshot";
 import { toast } from "sonner";
 
 interface Props {
@@ -13,7 +14,7 @@ export default function DownloadAsImage({ parentRef }: Props) {
     <Button
       onClick={async () => {
         if (!parentRef.current) return;
-        const data = await toJpeg(parentRef.current);
+        const data = await domToJpeg(parentRef.current, { filter: filterDom });
 
         if (!data) {
           toast.error("Couldn't convert to image");

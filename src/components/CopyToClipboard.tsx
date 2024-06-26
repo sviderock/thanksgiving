@@ -2,9 +2,9 @@
 
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
-import { cn } from "@/utils";
+import { cn, filterDom } from "@/utils";
 import { ClipboardCopyIcon } from "@radix-ui/react-icons";
-import { toBlob } from "html-to-image";
+import { domToBlob } from "modern-screenshot";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -23,7 +23,7 @@ export default function CopyToClipboard({ parentRef }: Props) {
         if (!parentRef.current) return;
         setPending(true);
 
-        const data = await toBlob(parentRef.current);
+        const data = await domToBlob(parentRef.current, { filter: filterDom });
         if (!data) {
           toast.error("Couldn't convert to image");
           return;

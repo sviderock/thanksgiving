@@ -15,7 +15,6 @@ import {
   UnderlineIcon,
 } from "@radix-ui/react-icons";
 import { type Editor } from "@tiptap/react";
-import { useEffect } from "react";
 
 interface Props {
   editor: Editor | null;
@@ -36,6 +35,10 @@ export default function TextEditorMenuBar({ editor, onDrag, onDelete }: Props) {
           variant="outline"
           className="cursor-move px-1 bg-slate-800 sticky left-2"
           onMouseDown={(e) => onDrag(e)}
+          onMouseUp={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
         >
           <MoveIcon />
         </Button>
@@ -49,7 +52,7 @@ export default function TextEditorMenuBar({ editor, onDrag, onDelete }: Props) {
         <div className="inline-flex gap-2 py-2 pr-2 overflow-hidden">
           <Input
             type="color"
-            className="h-6 w-6 p-0 bg-transparent"
+            className="h-6 w-6 p-0 bg-transparent cursor-pointer hover:bg-slate-800"
             defaultValue={editor.getAttributes("textStyle").color}
             onInput={(e) => editor.chain().focus().setColor(e.currentTarget.value).run()}
           />
