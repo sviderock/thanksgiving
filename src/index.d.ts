@@ -7,6 +7,8 @@ declare global {
     width: number;
     height: number;
     fontSize: number;
+    dragOffsetX: number;
+    dragOffsetY: number;
   };
 }
 

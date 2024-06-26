@@ -40,6 +40,8 @@ export default function MainView() {
               width: 200,
               height: 30,
               fontSize: 28,
+              dragOffsetX: 0,
+              dragOffsetY: 0,
             },
           ]);
         }}
@@ -51,11 +53,12 @@ export default function MainView() {
 
           const rect = e.currentTarget.getBoundingClientRect();
           setNewPos({
-            x: e.nativeEvent.x - rect.left,
-            y: e.nativeEvent.y - rect.top,
+            x: e.nativeEvent.x - rect.left - dragData!.dragOffsetX,
+            y: e.nativeEvent.y - rect.top - dragData!.dragOffsetY,
           });
         }}
         onMouseUp={() => {
+          console.log(draggingIdx);
           if (!draggingIdx) return;
           setFields((fields) =>
             fields.with(+draggingIdx, { ...fields[+draggingIdx], x: newPos.x, y: newPos.y })
@@ -78,7 +81,6 @@ export default function MainView() {
               setFields((fields) => fields.filter((item) => field.id !== item.id));
             }}
             onChange={(data) => {
-              console.log("change", data);
               setFields((fields) => fields.with(idx, { ...field, ...data }));
             }}
             onDrag={(e) => {
@@ -88,10 +90,12 @@ export default function MainView() {
 
               const rect = ref.current!.getBoundingClientRect();
               const fieldRect = fieldRef.getBoundingClientRect();
-              setNewPos({
-                x: e.nativeEvent.x - rect.x - (e.nativeEvent.x - fieldRect.x),
-                y: e.nativeEvent.y - rect.y - (e.nativeEvent.y - fieldRect.y),
-              });
+              const x = e.nativeEvent.x - rect.x - (e.nativeEvent.x - fieldRect.x);
+              const y = e.nativeEvent.y - rect.y - (e.nativeEvent.y - fieldRect.y);
+              const dragOffsetX = e.nativeEvent.x - x;
+              const dragOffsetY = e.nativeEvent.y - y;
+              setFields((fields) => fields.with(idx, { ...field, dragOffsetX, dragOffsetY }));
+              setNewPos({ x, y });
             }}
           />
         ))}

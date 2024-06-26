@@ -5,11 +5,9 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function filterDom(el: Node) {
-  const elem = el as HTMLElement;
-  if (elem.classList?.contains("field-wrapper")) {
-    console.log(elem);
-    elem.style.setProperty("overflow", "visible");
-  }
-  return true;
+export function onCloneNode(cloned: Node) {
+  const el = cloned as HTMLElement;
+  el.querySelectorAll(".field-wrapper").forEach((el) => {
+    (el as HTMLElement).style.setProperty("overflow", "visible");
+  });
 }

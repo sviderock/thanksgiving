@@ -35,10 +35,6 @@ export default function TextEditorMenuBar({ editor, onDrag, onDelete }: Props) {
           variant="outline"
           className="cursor-move px-1 bg-slate-800 sticky left-2"
           onMouseDown={(e) => onDrag(e)}
-          onMouseUp={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-          }}
         >
           <MoveIcon />
         </Button>
