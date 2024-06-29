@@ -10,6 +10,7 @@ import { detectDoubleTap } from "@/utils";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
+import { ImageUploader } from "@/components/ImageUploader";
 
 function isDoubleTap(e: unknown): e is CustomEvent {
   return (e as CustomEvent)?.type === "doubletap";
@@ -138,6 +139,7 @@ export default function MainView() {
       </div>
 
       <div className="p-4 flex gap-2 flex-col">
+        <ImageUploader />
         <CopyToClipboard parentRef={ref} />
         <DownloadAsImage parentRef={ref} />
         <Button
