@@ -33,3 +33,55 @@ export function detectDoubleTap(doubleTapMs = 200) {
     lastTap = currentTime;
   };
 }
+
+export function getHorizontalAlign({
+  x,
+  line,
+  rect,
+  fieldRef,
+}: {
+  x: number;
+  line: RulerLine;
+  rect: DOMRect;
+  fieldRef: HTMLDivElement;
+}) {
+  const centerX = x + fieldRef.offsetWidth / 2;
+  const left = x - rect.left;
+  const right = x + fieldRef.offsetWidth;
+  switch (true) {
+    case line.x - 10 < left && line.x + 10 > left:
+      return line.x;
+    case line.x - 10 < centerX && line.x + 10 > centerX:
+      return line.x - fieldRef.offsetWidth / 2;
+    case line.x - 10 < right && line.x + 10 > right:
+      return line.x - fieldRef.offsetWidth;
+    default:
+      return null;
+  }
+}
+
+export function getVerticalAlign({
+  y,
+  line,
+  rect,
+  fieldRef,
+}: {
+  y: number;
+  line: RulerLine;
+  rect: DOMRect;
+  fieldRef: HTMLDivElement;
+}) {
+  const centerY = y + fieldRef.offsetHeight / 2;
+  const top = y - rect.top;
+  const bottom = y + fieldRef.offsetHeight;
+  switch (true) {
+    case line.y - 10 < top && line.y + 10 > top:
+      return line.y;
+    case line.y - 10 < centerY && line.y + 10 > centerY:
+      return line.y - fieldRef.offsetHeight / 2;
+    case line.y - 10 < bottom && line.y + 10 > bottom:
+      return line.y - fieldRef.offsetHeight;
+    default:
+      return null;
+  }
+}

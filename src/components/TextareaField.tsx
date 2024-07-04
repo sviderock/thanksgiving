@@ -97,8 +97,8 @@ export default function TextareaField(props: Props) {
       ref={wrapperRef}
       className="absolute flex flex-col"
       style={{
-        left: `${props.field.x}px`,
-        top: `${props.field.y}px`,
+        left: `${props.field.snapToLine.x ?? props.field.x}px`,
+        top: `${props.field.snapToLine.y ?? props.field.y}px`,
         width: `${width}px`,
         opacity: props.isDragged ? 0 : 1,
       }}
@@ -108,7 +108,7 @@ export default function TextareaField(props: Props) {
           <div
             ref={ref}
             className={cn(
-              "field-wrapper border-2 border-transparent bg-transparent outline-none leading-none flex flex-col flex-grow min-w-32 min-h-8 rounded-sm rounded-tr-none text-slate-800 [&::-webkit-resizer]:opacity-0",
+              "field-wrapper border-2 border-transparent bg-transparent outline-none leading-none flex flex-col flex-grow rounded-sm rounded-tr-none text-slate-800 [&::-webkit-resizer]:opacity-0",
               focused && "border-slate-400 resize  overflow-auto",
               dragging && "rounded-tr-sm"
             )}

@@ -1,23 +1,20 @@
 "use client";
 
-import "core-js/actual/array/with";
-import CopyToClipboard from "@/components/CopyToClipboard";
-import DownloadAsImage from "@/components/DownloadAsImage";
+import Actions from "@/components/Actions";
 import DragButton from "@/components/DragButton";
+import Ruler from "@/components/Ruler";
 import TextareaField from "@/components/TextareaField";
-import { Button } from "@/components/ui/button";
-import { detectDoubleTap } from "@/utils";
+import { detectDoubleTap, getHorizontalAlign, getVerticalAlign } from "@/utils";
+import { useStore } from "@/utils/state";
+import "core-js/actual/array/with";
 import { useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
-import { v4 as uuidv4 } from "uuid";
-import { ImageUploader } from "@/components/ImageUploader";
 
 function isDoubleTap(e: unknown): e is CustomEvent {
   return (e as CustomEvent)?.type === "doubletap";
 }
 
 export default function MainView() {
-  const [fields, setFields] = useState<Field[]>([]);
+  const { fields, addField, updateField, deleteField, setFields, ruler, lines } = useStore();
   const [draggingIdx, setDraggingIdx] = useState<string | null>(null);
   const [newPos, setNewPos] = useState({ x: 0, y: 0 });
   const ref = useRef<HTMLDivElement>(null);
@@ -34,20 +31,7 @@ export default function MainView() {
     const parentRect = ref.current!.getBoundingClientRect();
     const x = (isDoubleTap(e) ? e.detail.clientX : e.clientX) - parentRect.left;
     const y = (isDoubleTap(e) ? e.detail.clientY : e.clientY) - parentRect.top;
-    setFields((fields) => [
-      ...fields,
-      {
-        id: uuidv4(),
-        value: "",
-        x,
-        y,
-        width: 200,
-        height: 30,
-        fontSize: 28,
-        dragOffsetX: 0,
-        dragOffsetY: 0,
-      },
-    ]);
+    addField({ x, y });
   }
 
   useEffect(() => {
@@ -74,20 +58,35 @@ export default function MainView() {
           if (!fieldRef) return;
 
           const rect = e.currentTarget.getBoundingClientRect();
-          setNewPos({
-            x: e.nativeEvent.x - rect.left - dragData!.dragOffsetX,
-            y: e.nativeEvent.y - rect.top - dragData!.dragOffsetY,
-          });
+          const x = e.nativeEvent.x - rect.left - dragData!.dragOffsetX;
+          const y = e.nativeEvent.y - rect.top - dragData!.dragOffsetY;
+          const snapToLine = lines.reduce<Field["snapToLine"]>(
+            (acc, line) => {
+              return {
+                x: acc.x ?? getHorizontalAlign({ line, x, fieldRef, rect }),
+                y: acc.y ?? getVerticalAlign({ line, y, fieldRef, rect }),
+              };
+            },
+            { x: null, y: null }
+          );
+
+          updateField(+draggingIdx, { snapToLine });
+          setNewPos({ x, y });
         }}
         onMouseUp={() => {
           if (!draggingIdx) return;
-          setFields((fields) =>
-            fields.with(+draggingIdx, { ...fields[+draggingIdx], x: newPos.x, y: newPos.y })
-          );
+
+          updateField(+draggingIdx, {
+            x: newPos.x,
+            y: newPos.y,
+            centerX: newPos.x + dragData!.width / 2,
+            centerY: newPos.y + dragData!.height / 2,
+          });
           setDraggingIdx(null);
         }}
       >
         <img className="md:h-lvh w-lvw md:w-auto select-none" src="/podyaka_1.jpg" />
+        {ruler === "on" && <Ruler />}
 
         {fields.map((field, idx) => (
           <TextareaField
@@ -98,12 +97,8 @@ export default function MainView() {
             onRef={(ref) => {
               fieldRefs.current[idx] = ref.current;
             }}
-            onDelete={() => {
-              setFields((fields) => fields.filter((item) => field.id !== item.id));
-            }}
-            onChange={(data) => {
-              setFields((fields) => fields.with(idx, { ...field, ...data }));
-            }}
+            onDelete={() => deleteField(idx)}
+            onChange={(data) => updateField(idx, data)}
             onDrag={(e) => {
               setDraggingIdx(`${idx}`);
               const fieldRef = fieldRefs.current[idx];
@@ -115,7 +110,7 @@ export default function MainView() {
               const y = e.nativeEvent.y - rect.y - (e.nativeEvent.y - fieldRect.y);
               const dragOffsetX = e.nativeEvent.x - x;
               const dragOffsetY = e.nativeEvent.y - y;
-              setFields((fields) => fields.with(idx, { ...field, dragOffsetX, dragOffsetY }));
+              updateField(idx, { dragOffsetX, dragOffsetY });
               setNewPos({ x, y });
             }}
           />
@@ -125,8 +120,8 @@ export default function MainView() {
           <div
             className="absolute border-2 leading-none rounded-sm border-slate-500 text-xl z-1000 text-slate-800 break-words rounded-tr-none"
             style={{
-              left: `${newPos.x}px`,
-              top: `${newPos.y}px`,
+              left: `${dragData.snapToLine.x ?? newPos.x}px`,
+              top: `${dragData.snapToLine.y ?? newPos.y}px`,
               width: `${dragData.width}px`,
               height: dragData.height,
               fontSize: `${dragData.fontSize}px`,
@@ -138,49 +133,7 @@ export default function MainView() {
         )}
       </div>
 
-      <div className="p-4 flex gap-2 flex-col">
-        <ImageUploader />
-        <CopyToClipboard parentRef={ref} />
-        <DownloadAsImage parentRef={ref} />
-        <Button
-          onClick={() => {
-            if (!fields.length) {
-              toast.info("It's empty");
-              return;
-            }
-
-            try {
-              const dataFromLS = localStorage.getItem("saved");
-              if (!dataFromLS) {
-                localStorage.setItem("saved", JSON.stringify([fields]));
-                toast.success("Saved to local storage");
-                return;
-              }
-
-              const data = JSON.parse(dataFromLS) as Array<Field[]>;
-              data.push(fields);
-              localStorage.setItem("saved", JSON.stringify(data));
-              toast.success("Saved to local storage");
-            } catch (error) {}
-          }}
-        >
-          Save to local storage
-        </Button>
-        <Button
-          onClick={() => {
-            try {
-              const dataFromLS = localStorage.getItem("saved");
-              if (!dataFromLS) throw Error("nope");
-              const data = JSON.parse(dataFromLS);
-              setFields(data.at(-1));
-            } catch (error) {
-              toast.error("An error occured while parsing local storage");
-            }
-          }}
-        >
-          Restore last from local storage
-        </Button>
-      </div>
+      <Actions parentRef={ref} fields={fields} onRestore={setFields} />
     </div>
   );
 }

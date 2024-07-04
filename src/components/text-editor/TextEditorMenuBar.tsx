@@ -26,8 +26,6 @@ export default function TextEditorMenuBar({ editor, onDelete }: Props) {
     return null;
   }
 
-  console.log(editor);
-
   return (
     <div className="flex items-center rounded-sm gap-2">
       <div className="flex gap-1 flex-col py-2 overflow-hidden">
